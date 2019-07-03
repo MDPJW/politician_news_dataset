@@ -7,7 +7,7 @@ from .loader import newspath_form
 num_categories = 20
 url_form = 'https://lovit-politician-news-dataset.s3.ap-northeast-2.amazonaws.com/zips/news/{}.zip'
 sep = os.path.sep
-zipdirname = sep.join(os.path.dirname(os.path.realpath(__file__)).split(sep)[:-1] + ['zips'])
+zipdirname = sep.join(os.path.dirname(os.path.realpath(__file__)).split(sep)[:-1] + ['zips', 'news'])
 
 def check_dir(path):
     dirname = os.path.dirname(path)
