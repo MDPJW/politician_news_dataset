@@ -1,3 +1,4 @@
+from collections import namedtuple
 from glob import glob
 import os
 import re
@@ -7,6 +8,7 @@ sep = os.path.sep
 installpath = os.path.dirname(os.path.realpath(__file__))
 newspath_form = sep.join(installpath.split(sep)[:-1] + ['data', '{}', 'news'])
 commentspath_form = sep.join(installpath.split(sep)[:-1] + ['data', '{}', 'comments'])
+
 
 
 class News:
@@ -147,7 +149,11 @@ class News:
         self._check_dates(begin_date, end_date)
 
         for doc in self._iter(self.indexpaths, begin_date, end_date):
-            yield doc
+            try:
+                yield parse_index(doc)
+            except Exception as e:
+                print(e)
+                yield doc
 
     def _iter(self, paths, begin_date, end_date):
         for path in paths:
@@ -223,3 +229,42 @@ def load_docs(path):
     with open(path, encoding='utf-8') as f:
         docs = [line.strip() for line in f]
     return docs
+
+def parse_index(line):
+    """
+    Argument
+    --------
+    line : str
+        Index line
+        eg) '088/2013/03/01/0000281563\t102\t2013-03-01 12:36\t포항·구미 10월 재선거 가능성'
+
+    Returns
+    -------
+    index : namedtuple
+        It has attributes: press_id, article_id, category, date, time, title
+
+    Usage
+    -----
+        >>> line = '088/2013/03/01/0000281563\t102\t2013-03-01 12:36\t포항·구미 10월 재선거 가능성'
+        >>> parse_index(line)
+        $ Index(press_id='088', article_id='0000281563', category='102',
+                date='2013-03-01', time='2013-03-01 12:36', title='포항·구미 10월 재선거 가능성')
+    """
+
+    Index = namedtuple('Index', 'press_id article_id category date time title')
+
+    line = line.replace('\t기사입력', '\t')
+    cols = line.replace('/', '\t', 4).split('\t')
+    if len(cols) == 8:
+        oid, yy, mm, dd, aid, category, time, title = cols
+    elif len(cols) == 7:
+        oid, yy, mm, dd, aid, category, time = cols
+        title = ''
+    elif len(cols) >= 5:
+        oid, yy, mm, dd, aid = cols[:5]
+        category, time, title = '', '', ''
+    else:
+        raise ValueError('Format exception: {}'.format(line))
+
+    date = '{}-{}-{}'.format(yy, mm, dd)
+    return Index(oid, aid, category, date, time, title)
