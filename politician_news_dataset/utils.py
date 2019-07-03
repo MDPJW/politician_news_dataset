@@ -1,6 +1,122 @@
+from glob import glob
 import os
+import re
+
 
 sep = os.path.sep
 installpath = os.path.dirname(os.path.realpath(__file__))
 newspath_form = sep.join(installpath.split(sep)[:-1] + ['data', '{}', 'news'])
 commentspath_form = sep.join(installpath.split(sep)[:-1] + ['data', '{}', 'comments'])
+
+
+class News:
+    """
+        # Use news from entire period
+        >>> news = News(category=0)
+
+        # With specific begin and end date
+        >>> news = News(category=0, begin_date='2018-01-01', end_date='2018-01-03')
+
+        # With specific begin date and unbounded end date
+        >>> news = News(category=0, begin_date='2018-03-01')
+
+        # With unbounded begin date and specific end date
+        >>> news = News(category=0, end_date='2018-03-01')
+    """
+
+    def __init__(self, category, begin_date=None, end_date=None):
+        dirname = newspath_form.format(category)
+        self.dirname = dirname
+        newspaths = sorted(glob('{}/*.txt'.format(dirname)))
+        indexpaths = sorted(glob('{}/*.index'.format(dirname)))
+
+        begin_date, end_date = self._set_dates(newspaths, begin_date, end_date)
+        self._check_dates(begin_date, end_date)
+
+        self.newspaths = self._filter_paths(newspaths, begin_date, end_date)
+        self.indexpaths = self._filter_paths(indexpaths, begin_date, end_date)
+        self.num_docs = [(parse_date(path), line_count(path)) for path in self.indexpaths]
+
+    def _set_dates(self, paths, begin_date, end_date):
+        dates = [parse_date(path) for path in paths]
+        if begin_date is None:
+            begin_date = dates[0]
+        if end_date is None:
+            end_date = dates[-1]
+        return begin_date, end_date
+
+    def _check_dates(self, begin_date, end_date):
+        if not check_date_format(begin_date):
+            raise ValueError('Check begin_date form: {}'.format(begin_date))
+        if not check_date_format(end_date):
+            raise ValueError('Check end_date form: {}'.format(end_date))
+
+    def _filter_paths(self, paths, begin_date, end_date):
+        paths = [path for path in paths if begin_date <= parse_date(path) <= end_date]
+        return paths
+
+def parse_date(path):
+    """
+    Arguments
+    ---------
+    path : str
+        File path
+    Usage
+    -----
+        >>> path = '/workspace/data/politician/0/news/2013-01-02_politician.index'
+        >>> parse_date(path)
+        $ '2013-01-02'
+    """
+    return path.split('/')[-1][:10]
+
+def check_date_format(date):
+    """
+    Argument
+    --------
+    date : str
+        Datetime
+
+    Returns
+    -------
+    True if date is yyyy-mm-dd form
+    """
+
+    date_regex = re.compile('[\d]{4}-[\d]{2}-[\d]{2}')
+    pattern = date_regex.match(date)
+    return pattern is not None
+
+def line_count(path):
+    """
+    Argument
+    --------
+    path : str
+        File path
+
+    Returns
+    -------
+    n_lines : int
+        Number of lines
+    """
+
+    n_lines = 0
+    with open(path, encoding='utf-8') as f:
+        for _ in f:
+            n_lines += 1
+    return n_lines
+
+def load_docs(path):
+    """
+    Argument
+    --------
+    path : str
+        File path
+
+    Returns
+    -------
+    List of str
+        Each str is a news article. It uses double space as sentence separator
+    """
+
+    with open(path, encoding='utf-8') as f:
+        docs = [line.strip() for line in f]
+    return docs
