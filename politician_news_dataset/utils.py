@@ -264,7 +264,8 @@ def parse_index(line):
         oid, yy, mm, dd, aid = cols[:5]
         category, time, title = '', '', ''
     else:
-        raise ValueError('Format exception: {}'.format(line))
+        oid, yy, mm, dd, aid, category, time, title = [''] * 8
+        print('Format exception: {}'.format(line))
 
     date = '{}-{}-{}'.format(yy, mm, dd)
     return Index(oid, aid, category, date, time, title)
