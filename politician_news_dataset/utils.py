@@ -6,6 +6,8 @@ from .loader import newspath_form
 
 num_categories = 20
 url_form = 'https://lovit-politician-news-dataset.s3.ap-northeast-2.amazonaws.com/zips/news/{}.zip'
+sep = os.path.sep
+zipdirname = sep.join(os.path.dirname(os.path.realpath(__file__)).split(sep)[:-1] + ['zips'])
 
 def check_dir(path):
     dirname = os.path.dirname(path)
@@ -26,7 +28,8 @@ def fetch(category=None, remove_zip=True):
     for c in categories:
         url = url_form.format(c)
         dirname = newspath_form.format(c)
-        zippath = '{}/{}.zip'.format(dirname, c)
+        zippath = '{}/{}.zip'.format(zipdirname, c)
+        check_dir(zippath)
         download_a_file(url, zippath)
         filename = '/'.join(zippath.split('/')[-2:])
         print('downloaded {}'.format(filename))
