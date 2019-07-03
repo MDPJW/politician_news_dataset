@@ -1,1 +1,1 @@
-from .utils import News
+from .loader import News
