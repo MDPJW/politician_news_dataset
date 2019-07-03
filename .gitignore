@@ -1,0 +1,12 @@
+tmp
+zips/*
+data/*
+
+# jupyter
+.ipynb_checkpoints/
+*.pyc
+__pycache__/
+
+# Mac OS
+.DS_Store
+
