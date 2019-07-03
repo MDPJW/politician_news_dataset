@@ -55,6 +55,109 @@ class News:
         paths = [path for path in paths if begin_date <= parse_date(path) <= end_date]
         return paths
 
+    def get_news(self, begin_date=None, end_date=None):
+        """
+        Arguments
+        ---------
+        begin_date : str
+            yyyy-mm-dd format
+            If it is None, use first date of news in dirname
+            Default is None
+        end_date : str
+            yyyy-mm-dd format
+            If it is None, use first date of news in dirname
+            Default is None
+        Returns
+        ------
+        list of str
+            A str is a doublespace line format document of a news
+        """
+
+        return [doc for doc in self.iter_news(begin_date, end_date)]
+
+    def iter_news(self, begin_date=None, end_date=None):
+        """
+        Arguments
+        ---------
+        begin_date : str
+            yyyy-mm-dd format
+            If it is None, use first date of news in dirname
+            Default is None
+        end_date : str
+            yyyy-mm-dd format
+            If it is None, use first date of news in dirname
+            Default is None
+        Yields
+        ------
+        doc : str
+            Doublespace line format document of a news
+        """
+
+        begin_date, end_date = self._set_dates(
+            self.newspaths, begin_date, end_date)
+        self._check_dates(begin_date, end_date)
+
+        for doc in self._iter(self.newspaths, begin_date, end_date):
+            yield doc
+
+    def get_index(self, begin_date=None, end_date=None):
+        """
+        Arguments
+        ---------
+        begin_date : str
+            yyyy-mm-dd format
+            If it is None, use first date of news in dirname
+            Default is None
+        end_date : str
+            yyyy-mm-dd format
+            If it is None, use first date of news in dirname
+            Default is None
+        Returns
+        ------
+        list of str
+            Each str is tap separated index (press/yy/mm/dd/article, category, date, title)
+            For example,
+                $ 421/2018/01/02/0003129236	100	2018-01-02 15:53	'NLL 파문' 대화록 유출 수사 빈손…검찰 "기소 없을듯"
+        """
+
+        return [index for index in self.iter_index(begin_date, end_date)]
+
+    def iter_index(self, begin_date=None, end_date=None):
+        """
+        Arguments
+        ---------
+        begin_date : str
+            yyyy-mm-dd format
+            If it is None, use first date of news in dirname
+            Default is None
+        end_date : str
+            yyyy-mm-dd format
+            If it is None, use first date of news in dirname
+            Default is None
+        Yields
+        ------
+        index : str
+            Tap separated index (press/yy/mm/dd/article, category, date, title)
+            For example,
+                $ 421/2018/01/02/0003129236	100	2018-01-02 15:53	'NLL 파문' 대화록 유출 수사 빈손…검찰 "기소 없을듯"
+        """
+
+        begin_date, end_date = self._set_dates(
+            self.indexpaths, begin_date, end_date)
+        self._check_dates(begin_date, end_date)
+
+        for doc in self._iter(self.indexpaths, begin_date, end_date):
+            yield doc
+
+    def _iter(self, paths, begin_date, end_date):
+        for path in paths:
+            if not (begin_date <= parse_date(path) <= end_date):
+                continue
+            with open(path, encoding='utf-8') as f:
+                for doc in f:
+                    yield doc.strip()
+
+
 def parse_date(path):
     """
     Arguments
