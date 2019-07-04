@@ -29,10 +29,17 @@ def fetch(category=None, remove_zip=True):
         url = url_form.format(c)
         dirname = newspath_form.format(c)
         zippath = '{}/{}.zip'.format(zipdirname, c)
-        check_dir(zippath)
-        download_a_file(url, zippath)
         filename = '/'.join(zippath.split('/')[-2:])
-        print('downloaded {}'.format(filename))
+
+        # download
+        if os.path.exists(zippath):
+            print('Already downloaded {}'.format(filename))
+        else:
+            check_dir(zippath)
+            download_a_file(url, zippath)
+            print('downloaded {}'.format(filename))
+
+        # unzip
         unzip(zippath, dirname)
         print('unziped {}'.format(filename))
 
